@@ -78,6 +78,32 @@ if (gen.ok) {
   check('export button enabled', await page.evaluate(() => !document.getElementById('exportBtn').disabled));
 }
 
+// Card detection in the bundle: a synthetic bright CR80 (rounded corners) on
+// a dark desk, detected and edge-fitted, with the aspect check agreeing.
+const card = await page.evaluate(async () => {
+  const W = 1400, H = 1000, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  g.fillStyle = '#2a2a2e'; g.fillRect(0, 0, W, H);
+  const s = 11, cw = 85.60 * s, ch = 53.98 * s, r = 3.18 * s, x0 = (W - cw) / 2 + 20, y0 = (H - ch) / 2 - 10;
+  g.fillStyle = '#e8e2d0';
+  g.beginPath(); g.roundRect(x0, y0, cw, ch, r); g.fill();
+  g.fillStyle = '#b8a060'; g.fillRect(x0 + 60, y0 + 230, 700, 95);   // a key blade across the card
+  const ui = window.keyUI;
+  await new Promise(res => { ui.loadImage(c.toDataURL()); const t = setInterval(() => { if (ui.state.img && ui.state.img.width === W) { clearInterval(t); res(); } }, 20); });
+  const q = ui.detectCard();
+  const truth = [{ x: x0, y: y0 }, { x: x0 + cw, y: y0 }, { x: x0 + cw, y: y0 + ch }, { x: x0, y: y0 + ch }];
+  const err = q ? Math.max(...q.map((p, i) => Math.hypot(p.x - truth[i].x, p.y - truth[i].y))) : null;
+  return { found: !!q, err, fitted: !!ui.state.cardFit, rms: ui.state.cardFit?.rms, warnHidden: document.getElementById('cardAspectWarn').hidden, readout: document.getElementById('scaleReadout').textContent };
+});
+check('card detected in the bundle', card.found);
+if (card.found) {
+  check(`edges fitted (${card.rms?.toFixed(2)} px RMS)`, card.fitted);
+  // canvas pixel i spans [i, i+1) while the tool indexes pixel i at coordinate i,
+  // so a drawn edge reads half a pixel low on both axes: 0.71 px is the floor.
+  check(`corners within 1.5 px of the drawn card (${card.err.toFixed(2)} px, 0.71 of it is the half-pixel convention)`, card.err < 1.5);
+  check('aspect check agrees the box is a CR80', card.warnHidden, card.readout);
+}
+
 check('no console or page errors', errors.length === 0, errors.join(' | '));
 
 await browser.close();

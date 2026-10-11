@@ -5,6 +5,16 @@
 // Single source of truth: bump this on each meaningful change; the header stamps
 // it on load so you can tell which build you're looking at.
 //
+//   v5.4  own repository (github.com/zillaness/Funny-Looking-Rock), and the first
+//         two ports back from 2.5D: (1) the detected card's edges are now FITTED
+//         AT FULL RESOLUTION — a line through the middle of each edge from ~96
+//         sub-pixel brightness crossings, corners where the lines meet — instead
+//         of a line through hull points of a 320 px downsample (edgeFit.js, from
+//         2.5D v1.28); (2) an ASPECT CHECK warns when the rectangle in the box
+//         isn't the preset you picked (a playing card read as CR80 is a whole
+//         depth step on Schlage), naming the likely preset when the photo is
+//         square-on (card.js, from 2.5D v1.30). Plus a smoke test of the shipped
+//         single-file bundle (test/dist-smoke.mjs, from 2.5D v1.25).
 //   v5.3  theme is now a THREE-state cycle: Dark → Light → Auto (follow the OS
 //         via prefers-color-scheme, tracked live). First visit still opens DARK;
 //         the choice is remembered in the browser (localStorage) for later
@@ -95,4 +105,4 @@
 //   v1.6  bow welded to blade as one watertight manifold; bow matched to blade
 //         thickness so the key prints flat; version badge in the header.
 //   v1.5  flat-print + single-manifold groundwork, app-side decode UI, real bows.
-export const VERSION = 'v5.3';
+export const VERSION = 'v5.4';

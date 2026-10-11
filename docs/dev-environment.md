@@ -13,11 +13,11 @@ trusting any test result:
 npm install
 ```
 
-Without it, five of the nine checks fail with
+Without it, five of the eleven checks fail with
 `Error: Cannot find module 'playwright-core'`. **This is not a regression** —
 it is the browser-driven tests failing to import a dependency that was never
-installed. The three pure-Node checks (`decode`, `keys`, `keymesh_check`) and
-`tools/keycheck.mjs` pass either way, which makes the split look like a real
+installed. The pure-Node checks (`decode`, `keys`, `edgefit`, `cardaspect`,
+`keymesh_check`) and `tools/keycheck.mjs` pass either way, which makes the split look like a real
 breakage in the UI layer when it isn't.
 
 If you hit that error, install and re-run before debugging anything else.
@@ -31,6 +31,8 @@ from `file://`. The full roster:
 ```sh
 node test/decode.mjs           # bitting decode
 node test/keys.mjs             # blanks, bitting, warding
+node test/edgefit.mjs          # sub-pixel card edge fit
+node test/cardaspect.mjs       # reference aspect check
 node test/keymesh_check.mjs    # CSG mesh
 node tools/keycheck.mjs all    # CSG geometry checker
 node test/keyui_smoke.mjs      # wizard UI (browser)
@@ -40,7 +42,7 @@ node test/rectify_smoke.mjs    # warp-flat skew correction (browser)
 node test/dist-smoke.mjs       # the SHIPPED bundle, from file:// (browser)
 ```
 
-All nine should pass on `main`.
+All eleven should pass on `main`.
 
 ### Which need a browser
 

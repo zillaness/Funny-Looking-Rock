@@ -44,10 +44,14 @@ python3 -m http.server 8000     # or: npx serve .
 Master Lock M1, BEST A2; Schlage also offers its C-family keyway sections).
 Load the photo, orient it with Rotate / Mirror / Flip, and set the scale from
 the card: **Set scale** auto-detects the card (Otsu threshold, convex extreme
-corners, lines fitted to the straight edges so rounded corners don't matter)
-and you drag the edges to fine-tune, with a magnifier loupe while dragging.
-Six reference presets: CR80, CR79, CR100, ½ and ⅓ CR80 key tags, and a
-playing card. The card is optional — square-on with no card, scale comes from
+corners) and then **fits each edge at full resolution**: ~96 sub-pixel
+brightness crossings through the middle of every edge, a robust line per
+edge, corners where the lines meet, so rounded corners, glare and the key
+lying across an edge don't pull the box. Drag an edge or corner to fine-tune,
+with a magnifier loupe while dragging. Six reference presets: CR80, CR79,
+CR100, ½ and ⅓ CR80 key tags, and a playing card; an **aspect check** warns
+when the rectangle in the box isn't the preset you picked, since a playing
+card read as a CR80 is a whole depth step on Schlage. The card is optional — square-on with no card, scale comes from
 the known cut spacing. Advancing with a card set **warps the photo flat**
 through the card homography so tracing runs on a true-millimetre image.
 
@@ -82,6 +86,9 @@ it flat on the bed in PETG, nylon or resin — a spare, not a daily key.
   welded fallback if the engine fails to load.
 - `js/keys/textpath.js` — label text → polygon loops (platform font, marching
   squares), the module 2.5D later ported as its `text.js`.
+- `js/keys/edgeFit.js`, `js/keys/card.js` — sub-pixel card edge fitting and
+  the reference-aspect check, both ported from 2.5D (v1.28 / v1.30) and made
+  pure so they test in Node.
 - `js/keys/keyUI.js` — the wizard, card detection, homography, loupe, bow
   detection.
 - `js/viewer3d.js`, `js/exporters.js`, `css/style.css`, `vendor/` — the three
@@ -95,7 +102,7 @@ so reverse BEST codes when moving to or from a BEST spec sheet.
 ## Tests
 
 ```sh
-npm test               # decode, blanks/bitting/warding, CSG mesh, geometry checker
+npm test               # decode, blanks/bitting/warding, edge fit, aspect check, CSG mesh, geometry checker
 npm run test:browser   # wizard UI, orientation, bow detection, skew correction
 npm run smoke          # rebuild, then load the shipped bundle from file://
 ```

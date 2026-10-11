@@ -19,6 +19,8 @@ import { initManifold, b64ToBytes } from './manifold-loader.js';
 import { Viewer3D } from '../viewer3d.js';
 import { toBinarySTL, downloadBlob } from '../exporters.js';
 import { VERSION } from './version.js';
+import { refineCorners } from './edgeFit.js';
+import { CARD_SIZES, checkCardAspect } from './card.js';
 
 // Warm up the CSG engine as soon as the page loads (the single-file build inlines
 // the wasm as a global). Falls back to the native weld if it can't load.
@@ -590,9 +592,9 @@ canvas.addEventListener('pointermove', (e) => {
     const d = { x: p.x - state.drag.last.x, y: p.y - state.drag.last.y }, i = state.drag.idx, j = (i + 1) % 4;
     state.cardQuad[i] = { x: state.cardQuad[i].x + d.x, y: state.cardQuad[i].y + d.y };
     state.cardQuad[j] = { x: state.cardQuad[j].x + d.x, y: state.cardQuad[j].y + d.y };
-    state.drag.last = p; applyCardScale(); draw(); return;
+    state.drag.last = p; state.cardFit = null; applyCardScale(); draw(); return;
   }
-  if (state.drag.kind === 'card') { state.cardQuad[state.drag.idx] = p; applyCardScale(); draw(); return; }
+  if (state.drag.kind === 'card') { state.cardQuad[state.drag.idx] = p; state.cardFit = null; applyCardScale(); draw(); return; }
   if (state.drag.kind === 'cut') { state.cutPts[state.drag.idx] = p; decodeFromHandles(); draw(); return; }
   if (state.drag.kind === 'back') { state.back[state.drag.idx] = p; decodeFromHandles(); draw(); return; }
   if (state.drag.kind === 'shoulder') state.shoulder = p;
@@ -619,22 +621,22 @@ canvas.addEventListener('wheel', (e) => {
 // blocked in the sandboxed artifact iframe).
 // Standard ID-card-family reference rectangles (mm). The known real dimensions
 // are what let the 4 corners correct scale AND perspective skew (homography).
-const CARD_SIZES = {
-  cr80:  { long: 85.60, short: 53.98 },   // credit / ID card (ISO ID-1)
-  cr79:  { long: 83.90, short: 51.00 },   // insert card
-  cr100: { long: 98.50, short: 67.00 },   // oversized badge
-  poker: { long: 88.90, short: 63.50 },   // 3.5×2.5 in playing / trading card
-  half:  { long: 53.98, short: 42.80 },   // ½ CR80 key tag
-  third: { long: 53.98, short: 28.53 },   // ⅓ CR80 key tag
-};
+// CARD_SIZES: see card.js (shared with the aspect check).
 const cardDims = () => CARD_SIZES[state.cardSize || 'cr80'];
 $('scaleBtn').onclick = () => {
   if (!state.img) { status('Load a photo first.'); return; }
   const auto = detectCardQuad();
   if (auto) {
-    state.cardQuad = auto;
-    status('Card detected — line up the box edges with the card’s straight sides (drag an edge or corner).');
+    // Refine the coarse quad at full resolution: a line fitted through the
+    // middle of each edge, corners where the lines cross (edgeFit.js).
+    const fit = refineCorners(state.sample, auto.quad, { polarity: auto.cardIsBright ? 1 : -1 });
+    state.cardQuad = fit.ok ? fit.corners : auto.quad;
+    state.cardFit = fit.ok ? { rms: Math.max(...fit.edges.map(e => e.rms)), moved: fit.moved } : null;
+    status(fit.ok
+      ? `Card detected, edges fitted to ${state.cardFit.rms.toFixed(2)} px — check the box; drag an edge or corner if it’s off.`
+      : 'Card detected — line up the box edges with the card’s straight sides (drag an edge or corner).');
   } else {
+    state.cardFit = null;
     const { w, h } = state.sample, cd = cardDims();
     const cw = w * 0.6, ch = cw * (cd.short / cd.long);
     const x0 = (w - cw) / 2, y0 = (h - ch) / 2;
@@ -707,10 +709,10 @@ function detectCardQuad() {
     const kept = ps.filter(p => dist(p) < Math.max(3, 2 * med));
     return kept.length >= 3 ? fitLine(kept) : L;
   });
-  if (lines.some(l => !l)) return rough;                  // not enough edge points → rough corners
+  if (lines.some(l => !l)) return { quad: rough, cardIsBright: bgIsDark };   // not enough edge points → rough corners
   const refined = [];
   for (let i = 0; i < 4; i++) refined.push(lineIntersect(lines[(i + 3) % 4], lines[i]) || rough[i]);
-  return refined;
+  return { quad: refined, cardIsBright: bgIsDark };
 }
 // Convex hull (Andrew's monotone chain).
 function convexHull(pts) {
@@ -784,8 +786,21 @@ function applyCardScale() {
   if (H && pxPerMm > 0) {
     state.cardH = H;
     state.manualScale = pxPerMm;
-    $('scaleReadout').textContent = `card (skew-corrected) · ~${pxPerMm.toFixed(1)} px/mm`;
+    $('scaleReadout').textContent = `card (skew-corrected) · ~${pxPerMm.toFixed(1)} px/mm` + (state.cardFit ? ' · edges fitted' : '');
     redecode(true);
+  }
+  // Is the rectangle in the box the preset that was picked? (card.js) A wrong
+  // preset scales the whole key, so say so while the photo can still be fixed.
+  const warnEl = $('cardAspectWarn');
+  if (warnEl) {
+    const chk = checkCardAspect(q, state.sample.w, state.sample.h, state.cardSize || 'cr80', CARD_SIZES);
+    if (chk && chk.mismatch) {
+      const picked = CARD_SIZES[state.cardSize || 'cr80'].name;
+      warnEl.textContent = `⚠ The box isn’t ${picked}-shaped (short/long ${chk.measured.toFixed(2)}, expected ${chk.expected.toFixed(2)})` +
+        (chk.suggestion ? ` — it looks like a ${CARD_SIZES[chk.suggestion].name}. Pick that, or re-check the box edges.`
+                        : ' — re-check the box edges, or the preset.');
+      warnEl.hidden = false;
+    } else warnEl.hidden = true;
   }
 }
 
@@ -1095,6 +1110,7 @@ window.keyUI = {
   state, loadImage, redecode, generate,
   setScale: (v) => { state.manualScale = v; },
   setHandles: (sh, tp) => { state.shoulder = sh; state.tip = tp; },
-  setCard: (quad) => { state.cardQuad = quad; applyCardScale(); },
+  setCard: (quad) => { state.cardQuad = quad; state.cardFit = null; applyCardScale(); },
+  detectCard: () => { $('scaleBtn').onclick(); return state.cardQuad; },
   reprofile, detectBow, setStep, draw,
 };
