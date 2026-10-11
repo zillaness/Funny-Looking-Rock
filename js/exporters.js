@@ -1,16 +1,17 @@
 // Copyright (C) 2026 Projects and Mods
 // GPL-3.0-or-later WITH Commons Clause (non-commercial) - see LICENSE.
 
-// Binary STL, SVG and DXF exporters.
+// Binary STL exporter + download helper. (The SVG/DXF exporters stayed with
+// 2.5D; a key is only ever exported as a solid.)
 
-import { APP_VERSION } from './version.js';
+import { VERSION } from './keys/version.js';
 
 // Binary STL (millimetres, z-up) from an indexed triangle mesh.
-export function toBinarySTL(positions, indices, name = '2.5D') {
+export function toBinarySTL(positions, indices, name = 'Funny Looking Rock') {
   const triCount = indices.length / 3;
   const buffer = new ArrayBuffer(84 + triCount * 50);
   const view = new DataView(buffer);
-  const header = `2.5D v${APP_VERSION} | ${name}`.slice(0, 79);
+  const header = `Funny Looking Rock ${VERSION} | ${name}`.slice(0, 79);
   for (let i = 0; i < Math.min(80, header.length); i++) {
     view.setUint8(i, header.charCodeAt(i));
   }
@@ -37,51 +38,7 @@ export function toBinarySTL(positions, indices, name = '2.5D') {
   return new Blob([buffer], { type: 'model/stl' });
 }
 
-// SVG of the trace (outline + holes) in real millimetres — handy for laser
-// cutting or importing the profile into CAD.
-export function toSVG(outline, holes, paperW, paperH) {
-  const path = pts =>
-    'M ' + pts.map(p => `${p.x.toFixed(3)},${p.y.toFixed(3)}`).join(' L ') + ' Z';
-  const d = [path(outline), ...holes.map(path)].join(' ');
-  return new Blob([
-    `<?xml version="1.0" encoding="UTF-8"?>\n` +
-    `<!-- 2.5D v${APP_VERSION} -->\n` +
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${paperW}mm" height="${paperH}mm" ` +
-    `viewBox="0 0 ${paperW} ${paperH}">\n` +
-    `  <path d="${d}" fill="#dfe6ee" fill-rule="evenodd" stroke="#111" stroke-width="0.2"/>\n` +
-    `</svg>\n`,
-  ], { type: 'image/svg+xml' });
-}
-
-// DXF (AutoCAD R12 / AC1009) of the trace as closed polylines — better CAD
-// interop than SVG. Coordinates are in millimetres, Y-up (DXF convention), so
-// image Y is flipped about paperH.
-export function toDXF(outline, holes, paperH) {
-  const lines = [];
-  const g = (code, val) => { lines.push(String(code), String(val)); };
-  g(999, `2.5D v${APP_VERSION}`);
-  g(0, 'SECTION'); g(2, 'HEADER');
-  g(9, '$ACADVER'); g(1, 'AC1009');
-  g(9, '$INSUNITS'); g(70, 4); // millimetres
-  g(0, 'ENDSEC');
-  g(0, 'SECTION'); g(2, 'ENTITIES');
-  const emitLoop = pts => {
-    g(0, 'POLYLINE'); g(8, 'trace'); g(66, 1); g(70, 1); // 70=1: closed
-    for (const p of pts) {
-      g(0, 'VERTEX'); g(8, 'trace');
-      g(10, p.x.toFixed(4));
-      g(20, (paperH - p.y).toFixed(4)); // flip to Y-up
-      g(30, '0.0');
-    }
-    g(0, 'SEQEND');
-  };
-  emitLoop(outline);
-  for (const h of holes) emitLoop(h);
-  g(0, 'ENDSEC');
-  g(0, 'EOF');
-  return new Blob([lines.join('\n') + '\n'], { type: 'application/dxf' });
-}
-
+// Trigger a browser download of a Blob.
 export function downloadBlob(blob, filename) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);

@@ -103,17 +103,23 @@ so this is only needed to unlock keygen-exclusive features later.
 
 ## Deployment
 
-- **GitHub Pages** serves the bundled apps from the `gh-pages` branch (root):
-  - `/FunnyLookingRock/` → Funny Looking Rock (the branded URL)
-  - `/` (root `index.html`) → Funny Looking Rock (mirror)
-  - `/2.5d.html` → the 2.5D photo tool
-  Rebuild (`node build.mjs`) then copy `dist/funny-looking-rock.html` onto both
-  `gh-pages` `index.html` and `FunnyLookingRock/index.html` to update. (Enable
-  once in repo Settings → Pages → Deploy from a branch → `gh-pages` / root.)
-  Live path: `https://zillaness.github.io/2.5D/FunnyLookingRock/`.
-- **TODO — dedicated repo later:** give Funny Looking Rock its own
-  `zillaness/FunnyLookingRock` repo so the URL is `.../FunnyLookingRock/` at the
-  top level (no `/2.5D/` prefix). Needs a copy/deploy step from this source repo.
+- **Own repository since 2026-10-11:** `github.com/zillaness/Funny-Looking-Rock`,
+  split out of `zillaness/2.5D` with full history (the key work lived on that
+  repo's `claude/key-from-photo` branch, now archived there as
+  `archive/key-from-photo`). See `docs/funny_looking_rock_split_prd_v1.0.md`
+  for the findings and the plan that was followed.
+- **GitHub Pages** serves the bundled app from this repo's `gh-pages` branch
+  (root `index.html`). Rebuild (`node build.mjs`) then copy
+  `dist/funny-looking-rock.html` onto `gh-pages` as `index.html` to update.
+  (Enable once in repo Settings → Pages → Deploy from a branch → `gh-pages` /
+  root.) Live path: `https://zillaness.github.io/Funny-Looking-Rock/`.
+- The old address `https://zillaness.github.io/2.5D/FunnyLookingRock/` redirects
+  here; `https://zillaness.github.io/2.5D/` now serves 2.5D itself.
+- The app depends on three files that came from 2.5D and are vendored here
+  rather than shared: `js/viewer3d.js`, `js/exporters.js` (STL + download only)
+  and `css/style.css`, plus the `vendor/` libraries. 2.5D's own modules
+  (homography, paper detection, mesh, measure…) are not in this repo; `keyUI.js`
+  carries its own card detection, homography and loupe.
 
 ## TODO — attribution / support links
 

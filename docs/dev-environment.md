@@ -24,31 +24,33 @@ If you hit that error, install and re-run before debugging anything else.
 
 ## The full check roster
 
-`npm test` only runs the 2.5D end-to-end test. The key-from-photo work has its
-own suite; run all of it:
+`npm test` runs the four pure-Node checks. The browser-driven ones are
+`npm run test:browser`, and `npm run smoke` rebuilds the bundle and loads it
+from `file://`. The full roster:
 
 ```sh
 node test/decode.mjs           # bitting decode
 node test/keys.mjs             # blanks, bitting, warding
 node test/keymesh_check.mjs    # CSG mesh
-node test/e2e.mjs              # 2.5D end-to-end (browser)
+node tools/keycheck.mjs all    # CSG geometry checker
 node test/keyui_smoke.mjs      # wizard UI (browser)
 node test/orient_smoke.mjs     # key orientation (browser)
 node test/bowdetect_smoke.mjs  # bow detection (browser)
 node test/rectify_smoke.mjs    # warp-flat skew correction (browser)
-node tools/keycheck.mjs all    # CSG geometry checker
+node test/dist-smoke.mjs       # the SHIPPED bundle, from file:// (browser)
 ```
 
-All nine should pass on `claude/key-from-photo`.
+All nine should pass on `main`.
 
 ### Which need a browser
 
-`e2e`, `keyui_smoke`, `orient_smoke`, `bowdetect_smoke` and `rectify_smoke`
-drive a headless Chromium through `playwright-core`. `keymesh_check` and
-`tools/keycheck.mjs` need `manifold-3d` (a normal npm dependency — no browser).
+`keyui_smoke`, `orient_smoke`, `bowdetect_smoke`, `rectify_smoke` and
+`dist-smoke` drive a headless Chromium through `playwright-core`.
+`keymesh_check` and `tools/keycheck.mjs` need `manifold-3d` (a normal npm
+dependency — no browser).
 
-`test/e2e.mjs` finds Chromium by checking, in order: an explicit path argument,
-`$CHROMIUM_PATH`, `/opt/pw-browsers/chromium`, then playwright's own default.
+The browser tests find Chromium by checking, in order: `$CHROMIUM_PATH`,
+`/opt/pw-browsers/chromium`, then playwright's own default.
 In containers that ship a preinstalled Chromium at `/opt/pw-browsers` it is
 found automatically — do **not** run `playwright install`, and leave
 `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` set so npm postinstall doesn't refetch it.
@@ -70,22 +72,21 @@ python3 -m http.server 8000     # or: npx serve .
 node build.mjs                  # or: npm run build
 ```
 
-Then copy `dist/funny-looking-rock.html` onto the `gh-pages` branch as both
-`index.html` and `FunnyLookingRock/index.html`.
+Then copy `dist/funny-looking-rock.html` onto the `gh-pages` branch as
+`index.html`.
 
-Live: https://zillaness.github.io/2.5D/FunnyLookingRock/
+Live: https://zillaness.github.io/Funny-Looking-Rock/
 
 ## Branching
 
-All key-from-photo work belongs on **`claude/key-from-photo`**. Sessions
-sometimes auto-create a suffixed branch (e.g. `claude/key-from-photo-8ke24i`);
-those are duplicates and should be deleted rather than developed on. Check
-where the real history lives before resetting anything — the remote branch has
-at times been ahead of a stale local one of the same name:
+This repository was split out of `zillaness/2.5D` on 2026-10-11 (the old
+`claude/key-from-photo` branch there is archived as `archive/key-from-photo`).
+Mainline is **`main`**. Sessions sometimes auto-create a suffixed branch;
+check where the real history lives before resetting anything:
 
 ```sh
-git fetch origin claude/key-from-photo
-git log --oneline origin/claude/key-from-photo -1
+git fetch origin main
+git log --oneline origin/main -1
 ```
 
 ## Things that must never be committed
