@@ -118,7 +118,7 @@ and the full check roster. `npm install` is not optional in a fresh clone.
   log of product and data decisions, deployment, and what's done.
 - [`docs/key-refs/`](docs/key-refs/) — reference charts, the pull list, and the
   cabinet / wafer key plan (`WAFER-CABINET-KEYS.md`).
-- [`docs/funny_looking_rock_split_prd_v1.0.md`](docs/funny_looking_rock_split_prd_v1.0.md) —
+- [`docs/funny_looking_rock_split_prd_v1.1.md`](docs/funny_looking_rock_split_prd_v1.1.md) —
   why and how this repo was split out of 2.5D, and the 2.5D features queued to port.
 
 ## Relationship to 2.5D

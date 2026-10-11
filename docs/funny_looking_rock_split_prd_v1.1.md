@@ -1,16 +1,18 @@
 ---
-file: funny_looking_rock_split_prd_v1.0.md
-version: 1.0
+file: funny_looking_rock_split_prd_v1.1.md
+version: 1.1
 author: Sam Cao
 created: 2026-10-07
-last_updated: 2026-10-07
+last_updated: 2026-10-11
 description: Findings on the state of the 2.5D repository and a PRD for moving Funny Looking Rock into its own repository, with the 2.5D features worth porting across.
 ai_update: Update last_updated and version. Rename file to match. Append changelog at bottom.
 ---
 
 # Funny Looking Rock: move to its own repository
 
-Status: DRAFT, awaiting sign-off. Nothing has been pushed, created, or deleted.
+Status: DONE (2026-10-11). Signed off by Sam on 2026-10-11 with the decisions
+recorded under "Decisions and outcome" at the end; the move, the Pages
+switch, and feature ports 1 to 3 are all shipped.
 
 ## Part 1. What is going on with 2.5D
 
@@ -119,6 +121,32 @@ Funny Looking Rock is a branch of 2.5D. Its code depends on a July snapshot of 2
 5. **2.5D Pages root.** Switch it to 2.5D and leave redirects at `/FunnyLookingRock/` and `/2.5d.html` (default), or leave 2.5D's Pages alone entirely.
 6. **Feature ports.** Approve Part 2 items 1 to 3 as the first work in the new repo, or hold.
 
+## Decisions and outcome (2026-10-11)
+
+Answers to the open questions, and what was done:
+
+1. **Default branch:** `main`, pushed alongside the session branch
+   `claude/bold-goodall-pxogly` (same commit). Both repos are public.
+2. **History:** option A. The full `claude/key-from-photo` history is in this
+   repo; commit `f577ff8` is the prune.
+3. **Third-party PDFs:** kept, status quo.
+4. **Old branch:** `archive/key-from-photo` now exists on 2.5D at the same
+   commit. Deleting `claude/key-from-photo` was refused by the session's git
+   proxy (HTTP 403 on ref deletion), so it is still there; delete it on
+   GitHub when convenient. Nothing references it any more.
+5. **2.5D Pages:** root is 2.5D v1.33.3; `/FunnyLookingRock/` and `/2.5d.html`
+   are redirects (gh-pages `e9f7815`).
+6. **Feature ports:** all three shipped in v5.4 (`60a8926`): `js/keys/edgeFit.js`,
+   `js/keys/card.js`, `test/dist-smoke.mjs`. Parallax (item 4) stays open;
+   decide after real-photo depth repeatability is measured with 1 and 2 in.
+
+Also done: this repo's `gh-pages` carries v5.4 (`3533939`); the 2.5D README fix
+is on 2.5D's `claude/bold-goodall-pxogly` (`2dc7d4c`, off the s3 mainline) for
+Sam to merge. Still Sam's to do in GitHub Settings: enable Pages on this repo
+(branch `gh-pages`, root) if it did not switch on by itself, and make the s3
+branch 2.5D's default.
+
 ## CHANGELOG
 
 - v1.0 (2026-10-07): Initial draft. Findings on 2.5D branch state, feature-port assessment, and move PRD.
+- v1.1 (2026-10-11): Signed off and executed. Decisions and outcome recorded; status DONE.
