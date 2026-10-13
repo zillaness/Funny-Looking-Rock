@@ -106,7 +106,7 @@ so this is only needed to unlock keygen-exclusive features later.
 - **Own repository since 2026-10-11:** `github.com/zillaness/Funny-Looking-Rock`,
   split out of `zillaness/2.5D` with full history (the key work lived on that
   repo's `claude/key-from-photo` branch, now archived there as
-  `archive/key-from-photo`). See `docs/funny_looking_rock_split_prd_v1.1.md`
+  `archive/key-from-photo`). See `docs/funny_looking_rock_split_prd_v1.1.1.md`
   for the findings and the plan that was followed.
 - **GitHub Pages** serves the bundled app from this repo's `gh-pages` branch
   (root `index.html`). Rebuild (`node build.mjs`) then copy

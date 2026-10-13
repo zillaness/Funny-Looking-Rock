@@ -1,9 +1,9 @@
 ---
-file: funny_looking_rock_split_prd_v1.1.md
-version: 1.1
+file: funny_looking_rock_split_prd_v1.1.1.md
+version: 1.1.1
 author: Sam Cao
 created: 2026-10-07
-last_updated: 2026-10-11
+last_updated: 2026-10-13
 description: Findings on the state of the 2.5D repository and a PRD for moving Funny Looking Rock into its own repository, with the 2.5D features worth porting across.
 ai_update: Update last_updated and version. Rename file to match. Append changelog at bottom.
 ---
@@ -130,10 +130,10 @@ Answers to the open questions, and what was done:
 2. **History:** option A. The full `claude/key-from-photo` history is in this
    repo; commit `f577ff8` is the prune.
 3. **Third-party PDFs:** kept, status quo.
-4. **Old branch:** `archive/key-from-photo` now exists on 2.5D at the same
-   commit. Deleting `claude/key-from-photo` was refused by the session's git
-   proxy (HTTP 403 on ref deletion), so it is still there; delete it on
-   GitHub when convenient. Nothing references it any more.
+4. **Old branch:** archived, not deleted. `archive/key-from-photo` exists on
+   2.5D at the old branch's last commit (`a0edc37`), and `claude/key-from-photo`
+   stays alongside it at the same commit. Sam's call on 2026-10-13: leave the
+   old name in place. Nothing references it any more.
 5. **2.5D Pages:** root is 2.5D v1.33.3; `/FunnyLookingRock/` and `/2.5d.html`
    are redirects (gh-pages `e9f7815`).
 6. **Feature ports:** all three shipped in v5.4 (`60a8926`): `js/keys/edgeFit.js`,
@@ -150,3 +150,4 @@ branch 2.5D's default.
 
 - v1.0 (2026-10-07): Initial draft. Findings on 2.5D branch state, feature-port assessment, and move PRD.
 - v1.1 (2026-10-11): Signed off and executed. Decisions and outcome recorded; status DONE.
+- v1.1.1 (2026-10-13): Old 2.5D branch stays alongside its archive pointer; no deletion.
